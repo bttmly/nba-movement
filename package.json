@@ -1,0 +1,25 @@
+{
+  "name": "nba-movement",
+  "version": "0.1.0",
+  "description": "The NBA's player movement API",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "babel": "^5.0.0",
+    "babel-runtime": "^5.0.0",
+    "highland": "^2.5.1",
+    "through": "^2.3.8",
+    "through2": "^2.0.0"
+  },
+  "dependencies": {
+    "request": "^2.65.0"
+  }
+}
