@@ -14,4 +14,5 @@ build:
 	./node_modules/.bin/babel src --out-dir lib --stage 0
 
 demo:
-	./node_modules/.bin/babel-node ./example/demo.js
+	@make build
+	node ./example/demo.js

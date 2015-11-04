@@ -1,5 +1,3 @@
-require("leaked-handles");
-
 var fs = require("fs");
 var path = require("path");
 var exec = require("child_process").exec;
@@ -10,7 +8,7 @@ var h = require("highland");
 var FILE = path.join(__dirname, "plays.json");
 var GAME_ID = "0021401228";
 
-var movement = require("../src");
+var movement = require("../lib");
 
 function demo () {
   try {
