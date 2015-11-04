@@ -12,7 +12,7 @@ var movement = require("../lib");
 
 function demo () {
   try {
-    fs.unlinkSync(FILE)
+    fs.unlinkSync(FILE);
     fs.writeFileSync(FILE, "");
   } catch (e) { /* probably worked? */ }
 
@@ -25,15 +25,18 @@ function demo () {
     .pipe(logger())
     .pipe(fs.createWriteStream(FILE));
 
-  ee.on("end", function () { st.destroy() });
-
   return ee;
 }
 
-console.time("demo");
-demo().on("end", function () {
-  console.timeEnd("demo");
-});
+console.time("end");
+console.time("close");
+
+demo().on("close", function () {
+    console.timeEnd("close");
+  })
+  .on("end", function () {
+    console.timeEnd("end");
+  });
 
 
 
