@@ -8,7 +8,7 @@ var h = require("highland");
 var FILE = path.join(__dirname, "plays.json");
 var GAME_ID = "0021401228";
 
-var movement = require("../lib");
+var movement = require("../lib/");
 
 function demo () {
   try {
@@ -16,25 +16,26 @@ function demo () {
     fs.writeFileSync(FILE, "");
   } catch (e) { /* probably worked? */ }
 
-  var ee = movement.getMovementForGame(GAME_ID);
-  
-  var st = h("data", ee)
-    .pipe(momentize())
+  // return h("data", movement.getMovementForGame(GAME_ID))
+  return movement.getMovementForGame(GAME_ID)
+    .pipe(logger())
+    .pipe(toMoment())
     .pipe(delimitedJson("\n"))
     .pipe(writeOne())
-    .pipe(logger())
     .pipe(fs.createWriteStream(FILE));
 
-  return ee;
 }
 
 console.time("end");
 console.time("close");
 
-demo().on("close", function () {
+demo()
+  .on("close", function () {
+    console.log("CLOSE");
     console.timeEnd("close");
   })
   .on("end", function () {
+    console.log("END");
     console.timeEnd("end");
   });
 
@@ -66,7 +67,7 @@ function delimitedJson (d) {
   });
 }
 
-function momentize () {
+function toMoment () {
   return through2.obj(function (data, enc, done) {
    done(null, data.moments.map(movement.Moment));
   });
@@ -74,8 +75,8 @@ function momentize () {
 
 function logger () {
   var i = 0;
-  return through2(function (data, enc, done) {
-    console.log("writing item", ++i);
+  return through2.obj(function (data, enc, done) {
+    console.log("writing index", i++);
     done(null, data);
   });
 }
@@ -90,5 +91,5 @@ function writeOne () {
       fs.writeFileSync(path.join(__dirname, "head.json"), str);
     }
     done(null, data);
-  })
+  });
 }

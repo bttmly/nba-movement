@@ -1,9 +1,10 @@
-const {EventEmitter} = require("events");
+const {Readable} = require("stream");
 
 const request = require("request");
 
 const BATCH_COUNT = 50;
 const GAME_URL = "http://stats.nba.com/stats/locations_getmoments/";
+
 
 function transport (url, query, cb) {
   request({
@@ -22,19 +23,31 @@ const DEFAULT_MAX_CONCURRENT = 50;
 const DEFAULT_MAX_EMPTY = 10;
 
 function getMovementForGame (gameId, maxConcurrent, maxBlanks) {
-  const emitter = new EventEmitter();
+  const pushQueue = [];
 
   let i = 0;
   let blanks = 0;
   let inFlight = 0;
   let stopped = false;
+  let ended = false;
+
 
   maxConcurrent = maxConcurrent || DEFAULT_MAX_CONCURRENT;
   maxBlanks      = maxBlanks    || DEFAULT_MAX_EMPTY;
 
   while (++i < maxConcurrent) sendRequest(i);
 
-  return emitter;
+  const readable = new Readable({objectMode: true});
+  readable._read = function () {
+    if (ended) {
+      readable.push(null);
+      return;
+    }
+
+    pushQueue.push(readable.push.bind(readable));
+  };
+
+  return readable;
 
   function sendRequest (n) {
     if (stopped) return;
@@ -48,34 +61,32 @@ function getMovementForGame (gameId, maxConcurrent, maxBlanks) {
     // close indicates no more data will be emitted
     if (blanks >= maxBlanks) {
       stopped = true;
-      emitter.emit("close");
     }
 
     inFlight += 1;
     getMovementForPlay(n, gameId, (err, data) => {
       inFlight -= 1;
 
-      if (stopped) {
-        // end indicates all requests have finished
-        if (inFlight === 0) {
-          emitter.emit("end");
-        }
-        return;
-      }
-
-      if (err) return emitter.emit("error", err);
+      if (err) return readable.emit("error", err);
 
       // unclear what we should do with eventids that return null (no error either)
       // here we elect to just skip them so the output stream is not sparse
       if (data) {
         data.eventid = n;
         blanks = 0;
-        emitter.emit("data", data);
+        pushQueue.shift()(data);
       } else {
         blanks += 1;
       }
 
-      sendRequest(++i);
+      // no more requests will be made and none are in flight. we're ACTUALLY done now
+      if (stopped && inFlight === 0) {
+        ended = true;
+        readable.emit("end");
+      }
+
+      // don't send another request if stopped
+      if (!stopped) sendRequest(++i);
     });
   }
 }
