@@ -3,7 +3,6 @@ var path = require("path");
 var exec = require("child_process").exec;
 
 var through2 = require("through2");
-var h = require("highland");
 
 var FILE = path.join(__dirname, "plays.json");
 var GAME_ID = "0021401228";
@@ -16,7 +15,6 @@ function demo () {
     fs.writeFileSync(FILE, "");
   } catch (e) { /* probably worked? */ }
 
-  // return h("data", movement.getMovementForGame(GAME_ID))
   return movement.getMovementForGame(GAME_ID)
     .pipe(logger())
     .pipe(toMoment())
