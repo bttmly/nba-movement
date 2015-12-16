@@ -1,4 +1,6 @@
-# nba-movement
+# nba-movement (WIP)
+
+*This project is under active development. The API will not change but certain observable behaviors likely will. Use at your own risk!*
 
 A Node wrapper for easy access to the NBA's player movement API. see `example/demo.js` for code, or clone this project and run `make demo`.
 
