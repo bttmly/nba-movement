@@ -12,52 +12,32 @@ var movement = require("../lib/");
 function demo () {
   try {
     fs.unlinkSync(FILE);
-    fs.writeFileSync(FILE, "");
   } catch (e) { /* probably worked? */ }
 
-  return movement.getMovementForGame(GAME_ID)
-    .pipe(logger())
-    .pipe(toMoment())
+  var st = movement.getMovementForGame(GAME_ID);
+
+  st.on("close", function () {
+      console.log("CLOSE");
+      console.timeEnd("close");
+    })
+    .on("end", function () {
+      console.log("END");
+      console.timeEnd("end");
+    });
+
+  st.pipe(logger())
     .pipe(delimitedJson("\n"))
     .pipe(writeOne())
     .pipe(fs.createWriteStream(FILE));
-
+  
+  return st;
 }
+
+demo();
 
 console.time("end");
 console.time("close");
-
-demo()
-  .on("close", function () {
-    console.log("CLOSE");
-    console.timeEnd("close");
-  })
-  .on("end", function () {
-    console.log("END");
-    console.timeEnd("end");
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+var events = [];
 
 function delimitedJson (d) {
   return through2.obj(function (data, enc, done) {
@@ -74,7 +54,9 @@ function toMoment () {
 function logger () {
   var i = 0;
   return through2.obj(function (data, enc, done) {
-    console.log("writing index", i++);
+    console.log("eventid", data.eventid);
+    ++i;
+    events.push(data.eventid);
     done(null, data);
   });
 }

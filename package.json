@@ -16,6 +16,7 @@
     "babel": "^5.0.0",
     "babel-runtime": "^5.0.0",
     "highland": "^2.5.1",
+    "mocha": "^2.3.4",
     "through": "^2.3.8",
     "through2": "^2.0.0"
   },

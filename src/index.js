@@ -3,8 +3,12 @@ const {Readable} = require("stream");
 const request = require("request");
 
 const BATCH_COUNT = 50;
-const GAME_URL = "http://stats.nba.com/stats/locations_getmoments/";
 
+let BASE_URL = "http://stats.nba.com/stats/locations_getmoments/";
+
+function setBaseUrl (url) {
+  BASE_URL = url;
+}
 
 function transport (url, query, cb) {
   request({
@@ -16,77 +20,79 @@ function transport (url, query, cb) {
 };
 
 function getMovementForPlay (eventid, gameid, cb) {
-  transport(GAME_URL, {eventid, gameid}, cb);
+  transport(BASE_URL, {eventid, gameid}, function (err, result) {
+    if (err) return cb(err);
+    if (result == null) return cb();
+    if (typeof result !== "object") return cb(new Error("Expected json, found " + result));
+    result.eventid = eventid;
+    cb(null, result);
+  });
 }
 
-const DEFAULT_MAX_CONCURRENT = 50;
+const DEFAULT_MAX_CONCURRENT = 1;
 const DEFAULT_MAX_EMPTY = 10;
 
+
 function getMovementForGame (gameId, maxConcurrent, maxBlanks) {
-  const pushQueue = [];
-
   let i = 0;
-  let blanks = 0;
-  let inFlight = 0;
-  let stopped = false;
   let ended = false;
-
+  let blanks = [];
 
   maxConcurrent = maxConcurrent || DEFAULT_MAX_CONCURRENT;
-  maxBlanks      = maxBlanks    || DEFAULT_MAX_EMPTY;
+  maxBlanks     = maxBlanks     || DEFAULT_MAX_EMPTY;
 
-  while (++i < maxConcurrent) sendRequest(i);
-
-  const readable = new Readable({objectMode: true});
-  readable._read = function () {
-    if (ended) {
-      readable.push(null);
-      return;
+  function updateBlanks () {
+    if (n == null) {
+      blanks = [];
+    } else if (blanks[blanks.length - 1] === n - 1) {
+      blanks.push(n);
+    } else {
+      blanks = [n];
     }
+  }
 
-    pushQueue.push(readable.push.bind(readable));
-  };
+  const readable = new Readable({
+    read: function () {
+      if (ended) readable.push(null);
+    },
+    objectMode: true,
+  });
+
+  while (i < maxConcurrent) sendRequest(++i);
 
   return readable;
 
   function sendRequest (n) {
-    if (stopped) return;
+    if (ended) return;
 
     // unfortunately there is no way to tell the difference between an eventid
     // that returns null beacuse it's omitted for some mysterious reason
-    // (maybe they are timeouts?) and an eventid that is past the end of the game
+    // (maybe they are time outs?) and an eventid that is past the end of the game
     // we use a consecutive "blanks" counter to guess when we've got to the end 
     // of the game.
 
-    // close indicates no more data will be emitted
-    if (blanks >= maxBlanks) {
-      stopped = true;
+
+    if (blanks.length >= maxBlanks) {
+      readable.emit("end");
+      ended = true;
+      return;
     }
 
-    inFlight += 1;
-    getMovementForPlay(n, gameId, (err, data) => {
-      inFlight -= 1;
+    getMovementForPlay(n, gameId, function (err, data) {
 
-      if (err) return readable.emit("error", err);
-
-      // unclear what we should do with eventids that return null (no error either)
-      // here we elect to just skip them so the output stream is not sparse
-      if (data) {
-        data.eventid = n;
-        blanks = 0;
-        pushQueue.shift()(data);
+      if (err) {
+        err.eventid = n;
+        readable.emit("error", err);
+      } else if (data) {
+        readable.push(data);
       } else {
-        blanks += 1;
+        updateBlanks(n);
       }
 
-      // no more requests will be made and none are in flight. we're ACTUALLY done now
-      if (stopped && inFlight === 0) {
-        ended = true;
-        readable.emit("end");
-      }
+      if (blanks.length)
+        console.log("blank count", blanks.length);
 
-      // don't send another request if stopped
-      if (!stopped) sendRequest(++i);
+      sendRequest(++i);
     });
   }
 }
@@ -94,6 +100,7 @@ function getMovementForGame (gameId, maxConcurrent, maxBlanks) {
 // These "constructors" are to help destructuring movement data in to meaningful
 // semantic fields. The NBA's format is extremely concise but is a pain in the neck
 // without a way to assign meaning to fields.
+
 let Moment = data => ({
   quarter: data[0],
   timestamp: data[1],
@@ -128,6 +135,7 @@ let Coordinate = tuple => isBall(tuple) ? Ball(tuple) : Player(tuple);
 module.exports = {
   getMovementForPlay,
   getMovementForGame,
+  setBaseUrl,
   Coordinate,
   Moment,
 };
