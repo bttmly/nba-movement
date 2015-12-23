@@ -50,7 +50,7 @@ const Event = data => ({
     name: data.visitor.name,
     teamId: data.visitor.teamId,
     abbreviation: data.visitor.abbreviation,
-    players: data.visitors.players.map(PlayerDetail),
+    players: data.visitor.players.map(PlayerDetail),
   },
   home: {
     name: data.home.name,
