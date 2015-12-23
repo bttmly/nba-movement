@@ -21,6 +21,7 @@
     "through2": "^2.0.0"
   },
   "dependencies": {
+    "ramda": "^0.19.0",
     "request": "^2.65.0"
   }
 }
