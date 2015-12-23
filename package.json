@@ -1,6 +1,6 @@
 {
   "name": "nba-movement",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "The NBA's player movement API",
   "main": "index.js",
   "directories": {
