@@ -18,7 +18,7 @@ const Ball = tuple => ({
   // [1] is -1 for ball
   x: tuple[2],
   y: tuple[3],
-  radius: tuple[4],
+  z: tuple[4],
 });
 
 const Player = tuple => ({

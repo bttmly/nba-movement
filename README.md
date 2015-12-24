@@ -54,7 +54,7 @@ Component types: (these are internal, no need to construct directly)
   type: "ball"
   x: Number,
   y: Number,
-  radius: Number
+  z: Number
 }
 
 // PlayerCoordinate
