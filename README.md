@@ -14,23 +14,65 @@ npm install nba-movement
 
 ### API
 
-#### `getMovementForPlay(Number eventId, String gameId, Function callback) -  > void`
+##### `getMovementForPlay(Number eventId, String gameId, Function callback) -  > void`
 
-#### `getMovementForGame(String gameId) -> ReadableStream`
+##### `getMovementForGame(String gameId) -> ReadableStream`
 
-#### `Moment(Array tuple) -> MomentStruct`
+##### `Moment(Array tuple) -> MomentStruct`
 See below
 
-#### `Coordinate(Array tuple) -> CoordinateStruct`
+##### `Coordinate(Array tuple) -> CoordinateStruct`
 See below
 
-#### Data
+##### `Event(Object data) -> EventStruct`
+See below
+
+### Data
 Data from stats.nba.com is presented in a hierarchy of "event", "moment", "coordinate". An "event" is something like a possession (although events seem to overlap a bit on the margins). An entire game has in the neighborhood of 350 to 400 events. A "moment" is an instant in time; the player tracking cameras capture 24 moments per second. So an event will have a few hundred moments. Finally, a "coordiante" is the exact position of a player or ball during a moment. There should be exactly 11 of these (10 players plus the ball) for each moment.
 
 To save space, the raw NBA player movement API packs this data into tuples. Thanks to the work [done here](http://savvastjortjoglou.com/nba-play-by-play-movements.html) we can assign meaningful keys to each data point and create simple data objects.
 
-Documentation on the shapes of each type is coming.
+Core types: (these types have exposed constructors, as noted above)
+`Coordinate`
+`Moment`
+`Event`
 
+Component types: (these are internal, no need to construct directly)
+`TeamInfo`
+`PlayerInfo`
+
+#### Coordinate
+
+`Coordinate` comes in two flavors:
+```
+// BallCoordinate
+{
+  type: "ball"
+  x: Number,
+  y: Number,
+  radius: Number
+}
+
+// PlayerCoordinate
+{
+  type: "player"
+  playerId: Number,
+  teamId: Number,
+  x: Number,
+  y: Number
+}
+```
+
+A little trick for pulling apart the coordinate list with ES6 destructuring and Lodash or Ramda:
+
+```js
+// with Lodash
+const [[ball], players] = _.partition(coordinates, {type: "ball"});
+// or Ramda
+const [[ball], players] = R.partition(R.whereEq({type: "ball"}), coordinates);
+````
+
+#### Moment
 `Moment` shape:
 ```
 {
@@ -42,23 +84,37 @@ Documentation on the shapes of each type is coming.
 }
 ```
 
-`Coordinate` comes in two flavors:
+#### Event
+`Event` shape:
 ```
-// ball
 {
-  type: "ball"
-  x: Number,
-  y: Number,
-  radius: Number
+  gameId: String,
+  gameDate: String,
+  visitor: TeamInfo,
+  home: TeamInfo,
+  moments: []Moment
 }
 
-// player
+
+#### TeamInfo
+`TeamInfo` shape:
+```
 {
-  type: "player"
-  playerId: Number,
+  name: String,
   teamId: Number,
-  x: Number,
-  y: Number
+  abbreviation: String,
+  players: []PlayerInfo
 }
+```
 
+#### PlayerInfo
+`PlayerInfo` shape:
+```
+{
+  lastName: String,
+  firstName: String,
+  playerId: Number,
+  jersey: String,
+  position: String
+}
 ```
