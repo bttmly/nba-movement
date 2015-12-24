@@ -94,7 +94,7 @@ const [[ball], players] = R.partition(R.whereEq({type: "ball"}), coordinates);
   home: TeamInfo,
   moments: []Moment
 }
-
+```
 
 #### TeamInfo
 `TeamInfo` shape:
