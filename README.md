@@ -27,6 +27,10 @@ See below
 ##### `Event(Object data) -> EventStruct`
 See below
 
+### Utils
+
+This repo will also house a set of utility functions for working with player movement data. In fact I hope these contain most of the code in the repo, since the core data fetching feature is extremely minimal. Contributions or ideas for helpful utilities are very welcome. For consistency, I would impose only one loose constraint: that utilities should ideally take a data structure below as a parameter and also return one of these data structures. For instance, the `closest` util takes a `Moment` and returns a `PlayerCoordinate`. Obviously this doesn't fit for all cases; a `possession` util might take a `Moment` or `Event` and return a `Number` representing the possessing team's id.
+
 ### Data
 Data from stats.nba.com is presented in a hierarchy of "event", "moment", "coordinate". An "event" is something like a possession (although events seem to overlap a bit on the margins). An entire game has in the neighborhood of 350 to 400 events. A "moment" is an instant in time; the player tracking cameras capture 24 moments per second. So an event will have a few hundred moments. Finally, a "coordiante" is the exact position of a player or ball during a moment. There should be exactly 11 of these (10 players plus the ball) for each moment.
 

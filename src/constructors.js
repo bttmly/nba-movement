@@ -30,7 +30,6 @@ const Player = tuple => ({
   // [4] is 0 for player
 });
 
-
 const PlayerDetail = data => ({
   lastName: data.lastname,
   firstName: data.firstname,
