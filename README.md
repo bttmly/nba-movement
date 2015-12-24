@@ -25,18 +25,13 @@ See below
 See below
 
 #### Data
-A raw "coordiante" (the position on the floor of the ball or a player looks like this):
-```
-[1610612761, 200768, 72.8909, 23.36539, 0] // player
-[-1, -1, 48.38345, 28.75741, 4.8347] // ball
-```
+Data from stats.nba.com is presented in a hierarchy of "event", "moment", "coordinate". An "event" is something like a possession (although events seem to overlap a bit on the margins). An entire game has in the neighborhood of 350 to 400 events. A "moment" is an instant in time; the player tracking cameras capture 24 moments per second. So an event will have a few hundred moments. Finally, a "coordiante" is the exact position of a player or ball during a moment. There should be exactly 11 of these (10 players plus the ball) for each moment.
 
-A raw "moment" (a bit of metadata, plus the moments of the ball and of all players), 
-[1, 1429139443003, 720, 24, null, []Moment]
+To save space, the raw NBA player movement API packs this data into tuples. Thanks to the work [done here](http://savvastjortjoglou.com/nba-play-by-play-movements.html) we can assign meaningful keys to each data point and create simple data objects.
 
-`nba-movement` provides `Moment` and `Coordinate` "constructors" that provide semantic keys for these two tuple types. The NBA's raw data format is good in terms of space requirements but is a pain in the ass to use directly.
+Documentation on the shapes of each type is coming.
 
-`MomentStruct` shape:
+`Moment` shape:
 ```
 {
   quarter: Number,
