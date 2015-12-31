@@ -34,7 +34,7 @@ function getMovementForPlay (eventid, gameid, cb) {
 // consecutive blank responses come back
 
 function getMovementForGame (gameId, options = {}) {
-  let i = 0;
+  let i = 1;
   let ended = false;
   let blanks = [];
   
@@ -55,10 +55,11 @@ function getMovementForGame (gameId, options = {}) {
     read () {
       if (ended) readable.push(null);
     },
-    destroy () {
-      ended = true;
-    },
   });
+
+  readable.destroy = function destroy () {
+    ended = true;
+  };
 
   sendRequest(i);
 
