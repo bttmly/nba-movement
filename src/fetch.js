@@ -15,7 +15,7 @@ function getMovementForPlay (eventid, gameid, cb) {
     qs: {eventid, gameid},
     json: true,
     pool: false,
-  }, function (err, __, body) {
+  }, function (err, __, result) {
     if (err) return cb(err);
     if (result == null) return cb();
     if (typeof result !== "object") return cb(new Error("Expected json, found " + result));
@@ -52,17 +52,19 @@ function getMovementForGame (gameId, options = {}) {
 
   const readable = new Readable({
     objectMode: true,
-    read: function () {
-      console.log("ending...");
+    read () {
       if (ended) readable.push(null);
     },
+    destroy () {
+      ended = true;
+    },
   });
+
+  sendRequest(i);
 
   return readable;
 
   function sendRequest (n) {
-    if (ended) return;
-
     if (blanks.length >= maxBlanks) {
       readable.emit("end");
       ended = true;
@@ -70,6 +72,7 @@ function getMovementForGame (gameId, options = {}) {
     }
 
     getMovementForPlay(n, gameId, function (err, data) {
+      if (ended) return;
 
       if (err) {
         err.eventid = n;
@@ -90,4 +93,4 @@ module.exports = {
   getMovementForPlay,
   getMovementForGame,
   setBaseUrl,
-}
+};
